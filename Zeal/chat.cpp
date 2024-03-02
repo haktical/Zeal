@@ -22,6 +22,13 @@ std::string generateTimestampedString(const char* message) {
 void __fastcall PrintChat(int t, int unused, const char* data, short color, bool u)
 {
 	chat* c = ZealService::get_instance()->chat_hook.get();
+
+    if (c->blueConFix)
+    {
+        if (color == 0x0004)
+            color = 0x0110;
+    }
+
     if (c->timestamps && strlen(data)>0) //remove phantom prints (the game also checks this, no idea why they are sending blank data in here sometimes
     {
         mem::write<byte>(0x5380C9, 0xEB); // don't log information so we can manipulate data before between chat and logs
@@ -45,6 +52,11 @@ void chat::LoadSettings(IO_ini* ini)
 		ini->setValue<bool>("Zeal", "ChatTimestamps", false);
 
 	timestamps = ini->getValue<bool>("Zeal", "ChatTimestamps");
+
+    if (!ini->exists("Zeal", "BlueConFix"))
+        ini->setValue<bool>("Zeal", "BlueConFix", false);
+
+    blueConFix = ini->getValue<bool>("Zeal", "BlueConFix");
 }
 
 chat::chat(ZealService* zeal, IO_ini* ini)
@@ -60,7 +72,20 @@ chat::chat(ZealService* zeal, IO_ini* ini)
 
             return true; //return true to stop the game from processing any further on this command, false if you want to just add features to an existing cmd
         });
-	LoadSettings(ini);
+
+    zeal->commands_hook->add("/blueconfix", { "/bcf" },
+        [this](std::vector<std::string>& args) {
+            blueConFix = !blueConFix;
+            ZealService::get_instance()->ini->setValue<bool>("Zeal", "BlueConFix", blueConFix);
+            if (blueConFix)
+                Zeal::EqGame::print_chat("Blue cons will now use User Color 17.");
+            else
+                Zeal::EqGame::print_chat("Blue cons will now use the default dark blue.");
+
+            return true; //return true to stop the game from processing any further on this command, false if you want to just add features to an existing cmd
+        });
+    
+    LoadSettings(ini);
 
 	zeal->hooks->Add("PrintChat", 0x537f99, PrintChat, hook_type_detour); //add extra prints for new loot types
 }

@@ -44,6 +44,10 @@ ___
 
 - `/buffs`
   - **Description:** Outputs the players buff timers to the chat only if they are using OldUI.
+	
+- `/blueconfix`
+  - **Aliases:** `/bcf`
+	- **Description:** Changes the default dark blue /con color to use User Color 17. This will need to be manually set by the user (it defaults to white so be careful!) but can be set to any color you want. For clarity, this is under Options -> Colors and the color numbered "17" on that screen.
 ___
 ### Binds
 - Cycle through nearest NPCs
